@@ -26,8 +26,8 @@ def set_background(image_file):
     """
     st.markdown(style, unsafe_allow_html=True)
 
-# Initialize the OCR reader
-reader = easyocr.Reader(['en'], gpu=False)
+# # Initialize the OCR reader
+# reader = easyocr.Reader(['en'], gpu=True)
 
 # Mapping dictionaries for character conversion
 dict_char_to_int = {'O': '0',

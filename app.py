@@ -13,12 +13,12 @@ import av
 import tempfile
 import re
 
-set_background("License-Plate-Detection-with-YoloV8-and-EasyOCR\\imgs\\background.png")
-folder_path = "C:\\Users\\Dr. Shephali\\Downloads"
-LICENSE_MODEL_DETECTION_DIR =" License-Plate-Detection-with-YoloV8-and-EasyOCR\\models\\license_plate_detector.pt"
-COCO_MODEL_DIR = "License-Plate-Detection-with-YoloV8-and-EasyOCR\\models\\yolov8n.pt"
+# set_background("./imgs/background.png")  # Commented out because you don't have this image yet
+folder_path = "./"  
+LICENSE_MODEL_DETECTION_DIR = "./license_plate_detector.pt"
+COCO_MODEL_DIR = "./yolov8n.pt"
 
-reader = easyocr.Reader(['en'], gpu=False)
+reader = easyocr.Reader(['en'], gpu=True)
 
 def is_valid_license_format(plate_text):
     """
@@ -167,7 +167,7 @@ def model_prediction(img):
                                                                             'text_score': license_plate_text_score}} 
                 license_numbers+=1
           
-        write_csv(results, f"License-Plate-Detection-with-YoloV8-and-EasyOCR\\csv_detections\\detection_results.csv")
+        write_csv(results, "./detection_results.csv")
 
         img_wth_box = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     
@@ -266,14 +266,13 @@ with header :
     col1.title("💥 License Car Plate Detection 🚗")
 
     _, col0, _ = st.columns([0.15,1,0.1])
-    col0.image("License-Plate-Detection-with-YoloV8-and-EasyOCR\\imgs\\test_background.jpg", width=500)
-
+    # col0.image("./imgs/test_background.jpg", width=500) # Commented out
 
     _, col4, _ = st.columns([0.1,1,0.2])
     col4.subheader("Computer Vision Detection with YoloV8 🧪")
 
     _, col, _ = st.columns([0.3,1,0.1])
-    col.image("License-Plate-Detection-with-YoloV8-and-EasyOCR\\imgs\\plate_test.jpg")
+    # col.image("./imgs/plate_test.jpg") # Commented out
 
     _, col5, _ = st.columns([0.05,1,0.1])
 
