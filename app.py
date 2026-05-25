@@ -113,11 +113,15 @@ def read_license_plate(license_plate_crop, img):
             scores += score
             plate.append(text)
     
-    if len(plate) != 0 : 
-        return " ".join(plate), scores/len(plate)
-    else :
-        return " ".join(plate), 0
-
+    if len(plate) != 0:  
+        combined_text = " ".join(plate)  
+        if is_valid_license_format(combined_text):  
+            return combined_text, scores / len(plate)  
+        else:  
+            return None, None  
+    else:  
+        return None, None
+    
 def model_prediction(img):
     license_numbers = 0
     results = {}
