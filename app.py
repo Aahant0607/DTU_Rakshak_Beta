@@ -197,6 +197,9 @@ def process_video_to_csv(video_path, csv_output_path):
         frame_count += 1
         timestamp = frame_count / frame_rate
 
+        if frame_count % 5 != 0:  
+            continue 
+
         # Perform YOLO and OCR detection on the frame
         license_detections = license_plate_detector(frame)[0]
         for license_plate in license_detections.boxes.data.tolist():
