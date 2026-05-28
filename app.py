@@ -3,7 +3,6 @@ import numpy as np
 from PIL import Image
 from ultralytics import YOLO
 import cv2
-import easyocr
 import pandas as pd
 from util import set_background, write_csv
 import uuid
@@ -12,13 +11,14 @@ from  streamlit_webrtc import webrtc_streamer, VideoProcessorBase, RTCConfigurat
 import av
 import tempfile
 import re
+from paddleocr import PaddleOCR
 
 # set_background("./imgs/background.png")  # Commented out because you don't have this image yet
 folder_path = "./"  
 LICENSE_MODEL_DETECTION_DIR = "./license_plate_detector.pt"
 COCO_MODEL_DIR = "./yolov8n.pt"
 
-reader = easyocr.Reader(['en'], gpu=True)
+reader = PaddleOCR(use_angle_cls=True, lang='en', use_gpu=False, show_log=False)
 
 def is_valid_license_format(plate_text):
     """
@@ -88,39 +88,51 @@ class VideoProcessor:
         return av.VideoFrame.from_ndarray(img, format="bgr24")
     
 
-def read_license_plate(license_plate_crop, img):
-    scores = 0
-    detections = reader.readtext(license_plate_crop)
+def read_license_plate(license_plate_crop_gray, img):
+    import cv2
+    import re
+    # Pre-process: 2x upscale for better OCR accuracy (Image is already grayscale)
+    gray = cv2.resize(license_plate_crop_gray, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
 
-    width = img.shape[1]
-    height = img.shape[0]
-    
-    if detections == [] :
+    # PaddleOCR returns: [ [ [box_coords], (text, confidence) ], ... ]
+    detections = reader.ocr(gray, cls=True)
+
+    if not detections or not detections[0]:
         return None, None
 
-    rectangle_size = license_plate_crop.shape[0]*license_plate_crop.shape[1]
+    plate_fragments = []
+    scores = 0.0
 
-    plate = [] 
-
-    for result in detections:
-        length = np.sum(np.subtract(result[0][1], result[0][0]))
-        height = np.sum(np.subtract(result[0][2], result[0][1]))
-        
-        if length*height / rectangle_size > 0.17:
-            bbox, text, score = result
-            text = result[1]
-            text = text.upper()
+    for line in detections[0]:
+        text, score = line[1][0], line[1][1]
+        if score > 0.3:                          # filter low-confidence fragments
+            plate_fragments.append(text.upper())
             scores += score
-            plate.append(text)
-    
-    if len(plate) != 0:  
-        combined_text = " ".join(plate)  
-        if is_valid_license_format(combined_text):  
-            return combined_text, scores / len(plate)  
-        else:  
-            return None, None  
-    else:  
+
+    if not plate_fragments:
         return None, None
+
+    raw_plate  = ''.join(''.join(plate_fragments).split())  # strip spaces
+    
+    # Strip out "IND" if the highly-accurate OCR picks up the blue logo
+    if "IND" in raw_plate:
+        raw_plate = raw_plate.replace("IND", "")
+        
+    # Strip out any random non-alphanumeric symbols OCR might have picked up
+    raw_plate = re.sub(r'[^A-Z0-9]', '', raw_plate)
+    # ------------------------
+    
+    print(f"\n--- DEBUG: RAW TEXT FROM OCR: '{raw_plate}' ---\n")
+
+    # Check format and return
+    # if not is_valid_license_format(raw_plate):              # reject garbage
+    #     return None, None
+
+    # Apply formatting (O vs 0) and return
+    from util import format_license 
+    formatted_plate = format_license(raw_plate)
+
+    return formatted_plate, scores / len(plate_fragments)
     
 def model_prediction(img):
     license_numbers = 0
@@ -340,7 +352,7 @@ with body :
                     _, col11, _ = st.columns([0.45,1,0.55])
                     col11.success(f"License Number: {texts[0]}")
 
-                    df = pd.read_csv(f"License-Plate-Detection-with-YoloV8-and-EasyOCR\\csv_detections\\detection_results.csv")
+                    df = pd.read_csv("detection_results.csv")
                     st.dataframe(df)
                 elif len(texts) > 1 and len(license_plate_crop) > 1  :
                     _, col3, _ = st.columns([0.4,1,0.2])

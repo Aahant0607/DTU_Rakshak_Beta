@@ -5,7 +5,7 @@ import tempfile
 from util import set_background, process_video, write_csv
 
 # Set the background for the Streamlit app
-set_background("background_image.png")  # Replace with your background image path
+# set_background("background_image.png")  # Replace with your background image path
 
 # Streamlit app title and description
 st.title("License Plate Detection App")

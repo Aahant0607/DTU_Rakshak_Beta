@@ -1,7 +1,7 @@
-import easyocr
 import base64
 import streamlit as st
 import string
+import re
 
 def set_background(image_file):
     """
@@ -82,87 +82,46 @@ def write_csv(results, output_path):
                             )
         f.close()
 
-def license_complies_format(text):
+import re
+
+def is_valid_license_format(text):
     """
-    Check if the license plate text complies with the required format.
-
-    Args:
-        text (str): License plate text.
-
-    Returns:
-        bool: True if the license plate complies with the format, False otherwise.
+    Validates standard Indian license plates ranging from 8 to 11 characters.
+    Handles standard states (HR26A1234), Delhi formats (DL1CAA1234, DL10CAA1234),
+    and older plates without series letters (MH121234).
     """
-    if len(text) != 10:
-        return False
-
-    if (text[0] in string.ascii_uppercase or text[0] in dict_int_to_char.keys()) and \
-       (text[1] in string.ascii_uppercase or text[1] in dict_int_to_char.keys()) and \
-       (text[2] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] or text[2] in dict_char_to_int.keys()) and \
-       (text[3] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] or text[3] in dict_char_to_int.keys() or \
-        text[3] in string.ascii_uppercase or text[3] in dict_int_to_char.keys()) and \
-       (text[4] in string.ascii_uppercase or text[4] in dict_int_to_char.keys()) and \
-       (text[5] in string.ascii_uppercase or text[5] in dict_int_to_char.keys()) and \
-       (text[6] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] or text[6] in dict_char_to_int.keys()) and \
-       (text[7] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] or text[7] in dict_char_to_int.keys()) and \
-       (text[8] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] or text[8] in dict_char_to_int.keys()) and \
-       (text[9] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] or text[9] in dict_char_to_int.keys()):
-        return True
-    else:
-        return False
-
+    text = ''.join(text.split())
+    
+    # [State: 2 letters] [RTO: 1 or 2 digits] [Series/Class: 0 to 3 letters] [Number: 4 digits]
+    # Removed ^ and $ so it can search INSIDE a messy string
+    general_format = r'[A-Z]{2}\d{1,2}[A-Z]{0,3}\d{4}'
+    
+    # Changed from re.match to re.search
+    return bool(re.search(general_format, text))
 
 def format_license(text):
     """
-    Format the license plate text by converting characters using the mapping dictionaries.
-
-    Args:
-        text (str): License plate text.
-
-    Returns:
-        str: Formatted license plate text.
+    Format the license plate text by converting confusing characters (like O and 0).
+    Dynamically handles 9 and 10 character plates.
     """
     license_plate_ = ''
-    mapping = {0: dict_int_to_char, 1: dict_int_to_char, 4: dict_int_to_char, 5: dict_int_to_char,6: dict_char_to_int,
-               2: dict_char_to_int,  3: {**dict_char_to_int, **dict_int_to_char},7: dict_char_to_int,8: dict_char_to_int,9: dict_char_to_int}
     
-    for j in [0, 1, 2, 3, 4, 5, 6,7,8,9]:
+    # Define mapping based on character position (Letters vs Numbers)
+    if len(text) == 10:
+        mapping = {0: dict_int_to_char, 1: dict_int_to_char, 2: dict_char_to_int, 3: dict_char_to_int, 
+                   4: dict_int_to_char, 5: dict_int_to_char, 6: dict_char_to_int, 7: dict_char_to_int, 
+                   8: dict_char_to_int, 9: dict_char_to_int}
+    elif len(text) == 9:
+        mapping = {0: dict_int_to_char, 1: dict_int_to_char, 2: dict_char_to_int, 3: dict_int_to_char, 
+                   4: dict_int_to_char, 5: dict_char_to_int, 6: dict_char_to_int, 7: dict_char_to_int, 
+                   8: dict_char_to_int}
+    else:
+        return text # Return raw if it doesn't match standard length
+    
+    for j in range(len(text)):
         if text[j] in mapping[j].keys():
             license_plate_ += mapping[j][text[j]]
         else:
             license_plate_ += text[j]
 
-    return license_plate_        
-
-def read_license_plate(license_plate_crop):
-    """
-    Read the license plate text from the given cropped image.
-
-    Args:
-        license_plate_crop (PIL.Image.Image): Cropped image containing the license plate.
-
-    Returns:
-        tuple: Tuple containing the formatted license plate text and its confidence score.
-    """
-
-    detections = reader.readtext(license_plate_crop)
-    print(detections)
-
-    if detections == [] :
-        return None, None
-
-    for detection in detections:
-        bbox, text, score = detection
-
-        #text = text.upper().replace(' ', '')
-        text = text.upper()
-        print(text)
-
-        if text is not None and score is not None and bbox is not None and len(text) >= 6:
-        #if license_complies_format(text):
-        #    return format_license(text), score
-            return text, score
-
-    return None, None
-
-
-
+    return license_plate_

@@ -1,31 +1,38 @@
-import streamlit as st
-import numpy as np
-from PIL import Image
-from ultralytics import YOLO
-import cv2
-import easyocr
-import pandas as pd
 import os
 from streamlit_webrtc import webrtc_streamer, VideoProcessorBase, RTCConfiguration
 import av
 import uuid
 from util import set_background, write_csv
+from paddleocr import PaddleOCR # V2 Upgrade
 
 # Initialize models and settings
-LICENSE_MODEL_DETECTION_DIR = "License-Plate-Detection-with-YoloV8-and-EasyOCR\\models\\license_plate_detector.pt"
-reader = easyocr.Reader(['en'], gpu=False)
+LICENSE_MODEL_DETECTION_DIR = "./license_plate_detector.pt" 
+reader = PaddleOCR(use_angle_cls=True, lang='en', use_gpu=False, show_log=False)
 license_plate_detector = YOLO(LICENSE_MODEL_DETECTION_DIR)
 output_csv_path = "live_video_results.csv"
 
 # Set background
-set_background("License-Plate-Detection-with-YoloV8-and-EasyOCR\\imgs\\background.png")
+# set_background("./imgs/background.png") # Commented out to prevent crash
 
 # Helper function to read license plates
-def read_license_plate(license_plate_crop):
-    detections = reader.readtext(license_plate_crop)
-    if not detections:
+def read_license_plate(license_plate_crop_gray):
+    import cv2
+    gray = cv2.resize(license_plate_crop_gray, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
+    detections = reader.ocr(gray, cls=True)
+
+    if not detections or not detections[0]:
         return None
-    return " ".join([result[1].upper() for result in detections])
+
+    plate_fragments = []
+    for line in detections[0]:
+        text, score = line[1][0], line[1][1]
+        if score > 0.3:
+            plate_fragments.append(text.upper())
+
+    if not plate_fragments:
+        return None
+
+    return ''.join(''.join(plate_fragments).split())
 
 # Custom VideoProcessor for live video
 class LicensePlateProcessor(VideoProcessorBase):
@@ -37,7 +44,7 @@ class LicensePlateProcessor(VideoProcessorBase):
     def recv(self, frame):
         img = frame.to_ndarray(format="bgr24")
         img_copy = img.copy()
-        license_detections = license_plate_detector(img_copy)[0]
+        license_detections = license_plate_detector(img_copy, conf=0.50)[0]
 
         for license_plate in license_detections.boxes.data.tolist():
             x1, y1, x2, y2, score, class_id = license_plate
