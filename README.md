@@ -611,7 +611,7 @@ See [LICENSE](LICENSE) for full terms.
 
 <div align="center">
 
-**If this project saved you time, please consider giving it a ⭐**
+
 
 <br/>
 
