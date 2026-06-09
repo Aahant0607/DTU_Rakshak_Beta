@@ -9,7 +9,7 @@
 [![PaddleOCR](https://img.shields.io/badge/PaddleOCR-2.8%2B-0062B8?style=for-the-badge&logo=paddlepaddle&logoColor=white)](https://github.com/PaddlePaddle/PaddleOCR)
 [![Kaggle](https://img.shields.io/badge/Kaggle-Notebook-20BEFF?style=for-the-badge&logo=kaggle&logoColor=white)](https://kaggle.com)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
-[![Stars](https://img.shields.io/github/stars/yourusername/indian-lp-detection?style=for-the-badge&color=FFD700&logo=github)](https://github.com/yourusername/indian-lp-detection/stargazers)
+[![Stars](https://img.shields.io/github/stars/yourusername/indian-lp-detection?style=for-the-badge&color=FFD700&logo=github)](https://github.com/Aahant0607/indian-lp-detection/stargazers)
 
 <br/>
 
