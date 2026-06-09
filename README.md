@@ -538,30 +538,6 @@ indian-lp-detection/
     └── live_snapshots/
 ```
 
----
-
-## ❓ FAQ
-
-**Q: Where do I get `license_plate_detector.pt`?**  
-A: Train it yourself using the notebook (Section 4) with any Indian LP dataset from Roboflow, or download a community-trained checkpoint from the Releases tab.
-
-**Q: Does it work on Raspberry Pi?**  
-A: Yes — use `--skip 5` and the nano model. Expect ~2 FPS. For real-time deployment on edge, export to ONNX and run with OpenCV DNN backend.
-
-**Q: Can I run multiple cameras on one machine?**  
-A: Yes. Pass multiple `--source` arguments. Each camera runs in its own thread sharing the same model instance. Tested with up to 8 cameras on a single RTX 3060.
-
-**Q: The RTSP stream keeps disconnecting.**  
-A: The script auto-reconnects after `Config.RECONNECT_WAIT` seconds (default 5s). Persistent drops usually indicate network instability or incorrect RTSP credentials.
-
-**Q: How do I query the CSV in real time?**  
-A: The CSV is append-only and safe to `tail -f`. You can also load it with pandas at any point — each row is flushed immediately after writing.
-
-**Q: Can I integrate this with a database?**  
-A: Replace or extend the `CSVLogger.write()` method with your database insert. The row dict contains all fields needed for a clean schema.
-
----
-
 ## 🔭 Roadmap
 
 - [ ] FastAPI endpoint for REST-based querying
