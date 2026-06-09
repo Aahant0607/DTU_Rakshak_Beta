@@ -7,9 +7,6 @@
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![Ultralytics](https://img.shields.io/badge/Ultralytics-YOLO26-00BFFF?style=for-the-badge&logo=github&logoColor=white)](https://github.com/ultralytics/ultralytics)
 [![PaddleOCR](https://img.shields.io/badge/PaddleOCR-2.8%2B-0062B8?style=for-the-badge&logo=paddlepaddle&logoColor=white)](https://github.com/PaddlePaddle/PaddleOCR)
-[![Kaggle](https://img.shields.io/badge/Kaggle-Notebook-20BEFF?style=for-the-badge&logo=kaggle&logoColor=white)](https://kaggle.com)
-[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
-[![Stars](https://img.shields.io/github/stars/yourusername/indian-lp-detection?style=for-the-badge&color=FFD700&logo=github)](https://github.com/Aahant0607/DTU_Rashak_Beta)
 
 <br/>
 
